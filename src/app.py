@@ -10,11 +10,10 @@ from prometheus_client import (
 from flask_cors import CORS
 from config import Config
 
-
 def create_app(config_class=Config):
     # Настройка логирования
     logging.basicConfig(
-        level=logging.INFO, 
+        level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s"
     )
     app = Flask(__name__)
@@ -64,7 +63,7 @@ def create_app(config_class=Config):
             return "Hello, DevOps-Kubernetes-GitOps!"
         except Exception as e:
             ERRORS.labels(
-                endpoint=request.path, 
+                endpoint=request.path,
                 error_type=type(e).__name__
             ).inc()
             logging.exception("Error in hello endpoint")
