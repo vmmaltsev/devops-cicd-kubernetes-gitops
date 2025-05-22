@@ -10,6 +10,7 @@ from prometheus_client import (
 from flask_cors import CORS
 from config import Config
 
+
 def create_app(config_class=Config):
     # Настройка логирования
     logging.basicConfig(
