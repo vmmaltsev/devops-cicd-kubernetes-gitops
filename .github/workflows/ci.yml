@@ -249,9 +249,24 @@ jobs:
           echo "METRICS_USER=testuser" >> .env
           echo "METRICS_PASS=testpass123" >> .env
 
+      - name: Check Docker Compose version
+        run: |
+          # Check which Docker Compose syntax is available
+          docker compose version || docker-compose --version || echo "Neither docker compose nor docker-compose found"
+
       - name: Run Docker Compose
         run: |
-          docker-compose up -d
+          # Try modern Docker Compose syntax (V2) first, fallback to V1 if needed
+          if docker compose version >/dev/null 2>&1; then
+            echo "Using Docker Compose V2 syntax"
+            docker compose up -d
+          elif docker-compose --version >/dev/null 2>&1; then
+            echo "Using Docker Compose V1 syntax"
+            docker-compose up -d
+          else
+            echo "Error: Neither docker compose nor docker-compose found"
+            exit 1
+          fi
           sleep 15
 
       - name: Test application via Docker Compose
@@ -265,12 +280,22 @@ jobs:
       - name: Check container logs
         if: always()
         run: |
-          docker-compose logs web
+          # Use appropriate Docker Compose syntax for logs
+          if docker compose version >/dev/null 2>&1; then
+            docker compose logs web
+          else
+            docker-compose logs web
+          fi
 
       - name: Cleanup
         if: always()
         run: |
-          docker-compose down -v
+          # Use appropriate Docker Compose syntax for cleanup
+          if docker compose version >/dev/null 2>&1; then
+            docker compose down -v
+          else
+            docker-compose down -v
+          fi
 
   # Build Summary and Notifications
   build-summary:
