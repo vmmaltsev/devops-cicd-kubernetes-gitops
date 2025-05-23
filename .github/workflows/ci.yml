@@ -7,6 +7,12 @@ on:
     branches: [ "main", "develop" ]
   workflow_dispatch:
 
+# Add permissions for security scanning
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 env:
   PYTHON_VERSION: '3.12'
   IMAGE_NAME: devops-cicd-demo
@@ -189,11 +195,27 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
 
-      - name: Upload Trivy scan results
+      - name: Run Trivy vulnerability scanner (table format for logs)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:test
+          format: 'table'
+        continue-on-error: true
+
+      - name: Upload Trivy scan results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
+
+      - name: Upload Trivy scan results as artifact (fallback)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-scan-results
+          path: 'trivy-results.sarif'
+          retention-days: 30
 
       - name: Check image size
         run: |

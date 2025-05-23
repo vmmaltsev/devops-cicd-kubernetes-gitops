@@ -1,0 +1,18 @@
+# Trivy ignore file
+# This file contains vulnerability IDs that should be ignored during scanning
+
+# Ignore low severity vulnerabilities in base OS packages that don't affect our application
+# CVE-2023-* - Example pattern for ignoring specific CVE years
+
+# Ignore vulnerabilities in development dependencies that don't affect production
+# You can add specific CVE IDs here if needed
+
+# Example:
+# CVE-2023-12345
+# CVE-2024-67890
+
+# Ignore informational findings
+# GHSA-*-info
+
+# Note: Be very careful when ignoring vulnerabilities
+# Only ignore after proper security review and risk assessment 
