@@ -8,6 +8,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
          build-essential \
          curl \
+         zlib1g-dev \
+         zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
 # Create virtual environment
