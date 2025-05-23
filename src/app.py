@@ -1,18 +1,20 @@
+import logging
 import os
 import signal
-import logging
 import sys
 from functools import wraps
-from flask import Flask, Response, request, abort
+
+from flask import Flask, Response, abort, request
+from flask_cors import CORS
 from prometheus_client import (
+    CONTENT_TYPE_LATEST,
     CollectorRegistry,
-    multiprocess,
     Counter,
     Histogram,
     generate_latest,
-    CONTENT_TYPE_LATEST,
+    multiprocess,
 )
-from flask_cors import CORS
+
 from config import Config
 
 
