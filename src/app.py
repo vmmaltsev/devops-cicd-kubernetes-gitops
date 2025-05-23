@@ -71,6 +71,7 @@ def _create_metrics(registry: CollectorRegistry) -> tuple[Counter, Histogram, Co
 
 def _create_metrics_auth_decorator(app: Flask) -> Callable:
     """Create metrics authentication decorator."""
+
     def metrics_auth(fn: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -78,7 +79,9 @@ def _create_metrics_auth_decorator(app: Flask) -> Callable:
             if not _is_valid_auth(auth, app):
                 return abort(401)
             return fn(*args, **kwargs)
+
         return wrapper
+
     return metrics_auth
 
 
@@ -93,6 +96,7 @@ def _is_valid_auth(auth: Any, app: Flask) -> bool:
 
 def _setup_signal_handlers() -> None:
     """Setup graceful shutdown signal handlers."""
+
     def handle_signal(sig: int, frame: Any) -> None:
         logging.info(f"Received signal {sig}, shutting down gracefully...")
         sys.exit(0)
@@ -110,7 +114,7 @@ def _register_routes(
     metrics_auth: Callable,
 ) -> None:
     """Register all application routes."""
-    
+
     @app.route("/")
     @latency_histogram.labels(endpoint="/").time()
     def hello() -> str:
@@ -118,7 +122,9 @@ def _register_routes(
         try:
             return "Hello, DevOps-Kubernetes-GitOps!"
         except Exception as e:
-            errors_counter.labels(endpoint=request.path, error_type=type(e).__name__).inc()
+            errors_counter.labels(
+                endpoint=request.path, error_type=type(e).__name__
+            ).inc()
             logging.exception("Error in hello endpoint")
             abort(500)
 
@@ -140,7 +146,7 @@ def _register_routes(
 def create_app(config_class: type = Config) -> Flask:
     """Create and configure Flask application."""
     _setup_logging()
-    
+
     app = Flask(__name__)
     _configure_app(app, config_class)
     CORS(app)
