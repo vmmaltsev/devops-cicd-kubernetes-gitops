@@ -22,9 +22,9 @@
 git clone <repository-url>
 cd devops-cicd-kubernetes-gitops
 
-# Set up environment
+# Set up environment variables
 cp env.example .env
-# Edit .env with your values
+# Edit .env with your actual values (see Environment Setup below)
 
 # Run with Docker Compose
 docker-compose up -d
@@ -215,6 +215,38 @@ git commit -m "feat: add new feature"
 - 📧 **Issues**: Use GitHub Issues
 - 📚 **Documentation**: See docs/ directory
 - 🔧 **CI/CD Help**: Check pipeline logs and artifacts
+
+## 🔧 Environment Setup
+
+### 1. Create Environment File
+
+```bash
+# Copy the template
+cp env.example .env
+```
+
+### 2. Configure Variables
+
+Edit `.env` file with your actual values:
+
+```bash
+# Required for metrics authentication
+METRICS_USER=your_secure_username
+METRICS_PASS=your_secure_password
+
+# Optional application settings
+DEBUG=false
+HOST=0.0.0.0
+PORT=8080
+LOG_LEVEL=INFO
+```
+
+### 3. Security Notes
+
+⚠️ **Important**: 
+- Never commit `.env` files to Git
+- Use strong passwords for production
+- See [Environment Security Guide](ENV_SECURITY_GUIDE.md) for details
 
 ---
 
