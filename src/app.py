@@ -3,6 +3,7 @@ import os
 import signal
 import sys
 from functools import wraps
+from typing import Any, Callable
 
 from flask import Flask, Response, abort, request
 from flask_cors import CORS
@@ -18,7 +19,7 @@ from prometheus_client import (
 from config import Config
 
 
-def create_app(config_class=Config):
+def create_app(config_class: type = Config) -> Flask:
     # Настройка логирования
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
@@ -35,7 +36,8 @@ def create_app(config_class=Config):
     CORS(app)
 
     # Подготовка мультипроцессного реестра
-    # ИСПРАВЛЕНИЕ: Устанавливаем переменную окружения ПЕРЕД созданием MultiProcessCollector
+    # ИСПРАВЛЕНИЕ: Устанавливаем переменную окружения ПЕРЕД созданием
+    # MultiProcessCollector
     prometheus_dir = app.config["PROMETHEUS_MULTIPROC_DIR"]
     os.makedirs(prometheus_dir, exist_ok=True)
     os.environ.setdefault("PROMETHEUS_MULTIPROC_DIR", prometheus_dir)
@@ -63,9 +65,9 @@ def create_app(config_class=Config):
         registry=registry,
     )
 
-    def metrics_auth(fn):
+    def metrics_auth(fn: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(fn)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             auth = request.authorization
             if (
                 not auth
@@ -79,7 +81,7 @@ def create_app(config_class=Config):
 
     @app.route("/")
     @LATENCY.labels(endpoint="/").time()
-    def hello():
+    def hello() -> str:
         REQUESTS.labels(method=request.method, endpoint=request.path).inc()
         try:
             return "Hello, DevOps-Kubernetes-GitOps!"
@@ -90,21 +92,21 @@ def create_app(config_class=Config):
 
     @app.route("/metrics")
     @metrics_auth
-    def metrics():
+    def metrics() -> Response:
         data = generate_latest(registry)
         return Response(data, status=200, content_type=CONTENT_TYPE_LATEST)
 
     @app.route("/healthz")
-    def liveness():
+    def liveness() -> tuple[str, int]:
         return "OK", 200
 
     @app.route("/ready")
-    def readiness():
+    def readiness() -> tuple[str, int]:
         # Здесь можно добавить реальную проверку зависимостей
         return "READY", 200
 
     # ИСПРАВЛЕНИЕ: Улучшенная обработка graceful shutdown
-    def handle_signal(sig, frame):
+    def handle_signal(sig: int, frame: Any) -> None:
         logging.info(f"Received signal {sig}, shutting down gracefully...")
         # Здесь можно подождать завершения работы воркеров
         sys.exit(0)

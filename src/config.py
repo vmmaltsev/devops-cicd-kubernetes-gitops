@@ -3,7 +3,7 @@ import warnings
 
 
 class Config:
-    def __init__(self):
+    def __init__(self) -> None:
         self.HOST = os.getenv("FLASK_HOST", "0.0.0.0")
         self.PORT = int(os.getenv("FLASK_PORT", "8080"))
         self.DEBUG = os.getenv("FLASK_DEBUG", "false").lower() == "true"
