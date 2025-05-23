@@ -5,8 +5,12 @@ import sys
 from functools import wraps
 from flask import Flask, Response, request, abort
 from prometheus_client import (
-    CollectorRegistry, multiprocess,
-    Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+    CollectorRegistry,
+    multiprocess,
+    Counter,
+    Histogram,
+    generate_latest,
+    CONTENT_TYPE_LATEST,
 )
 from flask_cors import CORS
 from config import Config
@@ -15,57 +19,60 @@ from config import Config
 def create_app(config_class=Config):
     # Настройка логирования
     logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s"
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
     )
     app = Flask(__name__)
-    
+
     # ИСПРАВЛЕНИЕ: Создаем экземпляр конфигурации для активации предупреждений
     if config_class == Config:
         config_instance = Config()
         app.config.from_object(config_instance)
     else:
         app.config.from_object(config_class)
-    
+
     CORS(app)
 
     # Подготовка мультипроцессного реестра
     # ИСПРАВЛЕНИЕ: Устанавливаем переменную окружения ПЕРЕД созданием MultiProcessCollector
     prometheus_dir = app.config["PROMETHEUS_MULTIPROC_DIR"]
     os.makedirs(prometheus_dir, exist_ok=True)
-    os.environ.setdefault('PROMETHEUS_MULTIPROC_DIR', prometheus_dir)
-    
+    os.environ.setdefault("PROMETHEUS_MULTIPROC_DIR", prometheus_dir)
+
     registry = CollectorRegistry()
     multiprocess.MultiProcessCollector(registry)
 
     # Метрики
     REQUESTS = Counter(
-        'hello_world_requests_total',
-        'Total Hello World Requests',
-        ['method', 'endpoint'],
-        registry=registry
+        "hello_world_requests_total",
+        "Total Hello World Requests",
+        ["method", "endpoint"],
+        registry=registry,
     )
     LATENCY = Histogram(
-        'hello_request_latency_seconds',
-        'Latency of Hello endpoint',
-        ['endpoint'],
-        registry=registry
+        "hello_request_latency_seconds",
+        "Latency of Hello endpoint",
+        ["endpoint"],
+        registry=registry,
     )
     ERRORS = Counter(
-        'hello_errors_total',
-        'Total errors in Hello endpoint',
-        ['endpoint', 'error_type'],
-        registry=registry
+        "hello_errors_total",
+        "Total errors in Hello endpoint",
+        ["endpoint", "error_type"],
+        registry=registry,
     )
 
     def metrics_auth(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
             auth = request.authorization
-            if not auth or auth.username != app.config["METRICS_USER"] \
-               or auth.password != app.config["METRICS_PASS"]:
+            if (
+                not auth
+                or auth.username != app.config["METRICS_USER"]
+                or auth.password != app.config["METRICS_PASS"]
+            ):
                 return abort(401)
             return fn(*args, **kwargs)
+
         return wrapper
 
     @app.route("/")
@@ -75,10 +82,7 @@ def create_app(config_class=Config):
         try:
             return "Hello, DevOps-Kubernetes-GitOps!"
         except Exception as e:
-            ERRORS.labels(
-                endpoint=request.path,
-                error_type=type(e).__name__
-            ).inc()
+            ERRORS.labels(endpoint=request.path, error_type=type(e).__name__).inc()
             logging.exception("Error in hello endpoint")
             abort(500)
 
@@ -111,8 +115,4 @@ def create_app(config_class=Config):
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(
-        host=app.config["HOST"],
-        port=app.config["PORT"],
-        debug=app.config["DEBUG"]
-    )
+    app.run(host=app.config["HOST"], port=app.config["PORT"], debug=app.config["DEBUG"])
