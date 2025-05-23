@@ -47,11 +47,14 @@ curl http://localhost:8080/healthz
 │   ├── architecture.md  # System architecture
 │   ├── deployment.md    # Deployment guide
 │   ├── monitoring.md    # Monitoring setup
-│   └── gitops.md        # GitOps workflow
+│   ├── gitops.md        # GitOps workflow
+│   └── security-fixes.md # Security documentation
 ├── scripts/              # Automation scripts
 │   ├── setup.sh         # Development setup
-│   └── deploy.sh        # Kubernetes deployment
+│   ├── deploy.sh        # Kubernetes deployment
+│   └── security-check.sh # Security verification
 ├── Dockerfile            # Container definition
+├── Dockerfile.secure     # Alternative secure Dockerfile
 ├── docker-compose.yml   # Local development
 ├── requirements-dev.txt # Development dependencies
 └── pyproject.toml       # Tool configuration
@@ -81,9 +84,42 @@ black src/ && isort src/ && flake8 src/
 # Build optimized image (146MB)
 docker build -t devops-app:latest .
 
+# Build secure image (alternative)
+docker build -f Dockerfile.secure -t devops-app:secure .
+
 # Run container
 docker run -p 8080:8080 devops-app:latest
 ```
+
+## 🔒 Security
+
+This project includes comprehensive security measures:
+
+### CVE-2023-45853 Fix
+- **Issue**: Critical zlib vulnerability (CVSS 9.8)
+- **Solution**: Updated to zlib 1.3.1 with source compilation
+- **Verification**: Run `./scripts/security-check.sh` to verify the fix
+
+### Security Features
+- Non-root container execution
+- Minimal attack surface with slim base images
+- Regular vulnerability scanning with Trivy
+- Automated security updates in CI/CD
+- Security headers and input validation
+
+### Security Verification
+```bash
+# Run comprehensive security check
+./scripts/security-check.sh devops-app:latest
+
+# Manual vulnerability scan
+trivy image devops-app:latest
+
+# Check zlib version
+docker run --rm devops-app:latest /bin/bash -c "strings /usr/local/lib/libz.so.1.3.1 | grep version"
+```
+
+See [Security Documentation](docs/security-fixes.md) for detailed information.
 
 ## ☸️ Kubernetes Deployment
 
@@ -120,6 +156,7 @@ See `env.example` for all options.
 - [Deployment Guide](docs/deployment.md) - Complete deployment instructions
 - [Monitoring Setup](docs/monitoring.md) - Observability and alerting
 - [GitOps Workflow](docs/gitops.md) - GitOps practices with ArgoCD
+- [Security Fixes](docs/security-fixes.md) - Security vulnerability documentation
 
 ## 🤝 Contributing
 
@@ -132,6 +169,7 @@ See `env.example` for all options.
 
 - `./scripts/setup.sh` - Automated development environment setup
 - `./scripts/deploy.sh` - Kubernetes deployment automation
+- `./scripts/security-check.sh` - Security vulnerability verification
 
 ---
 
