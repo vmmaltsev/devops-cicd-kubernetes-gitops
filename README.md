@@ -1,253 +1,138 @@
-# DevOps CI/CD Kubernetes GitOps Demo
+# DevOps CI/CD Kubernetes GitOps
 
-🚀 **Production-ready Flask application with comprehensive CI/CD pipeline, optimized Docker containers, and GitOps practices.**
-
-## ✨ Features
-
-- 🐍 **Flask Application** with Prometheus metrics
-- 🐳 **Optimized Docker** with multi-stage builds (146MB image)
-- 🔄 **Comprehensive CI/CD** with GitHub Actions
-- 🛡️ **Security Scanning** (Bandit, Safety, Trivy)
-- 📊 **Test Coverage** with pytest
-- 🔍 **Code Quality** (Black, isort, flake8, mypy)
-- 📈 **Monitoring** with Prometheus metrics
-- 🔧 **GitOps Ready** for Kubernetes deployment
+A production-ready Flask application demonstrating modern DevOps practices with CI/CD, containerization, and GitOps workflows.
 
 ## 🚀 Quick Start
 
-### Local Development
-
 ```bash
-# Clone the repository
+# Clone and setup
 git clone <repository-url>
 cd devops-cicd-kubernetes-gitops
 
-# Set up environment variables
-cp env.example .env
-# Edit .env with your actual values (see Environment Setup below)
+# Automated setup
+./scripts/setup.sh
 
-# Run with Docker Compose
+# Or manual setup
+cp env.example .env
 docker-compose up -d
 
-# Access the application
+# Verify
 curl http://localhost:8080/healthz
 ```
 
-### Development Setup
+## 📁 Project Structure
+
+```
+├── .github/workflows/     # CI/CD pipelines
+├── src/                   # Flask application
+│   ├── app.py            # Main application
+│   ├── config.py         # Configuration
+│   ├── wsgi.py           # WSGI entry point
+│   └── requirements.txt  # Python dependencies
+├── tests/                 # Test suite
+├── k8s/                   # Kubernetes manifests
+│   ├── base/             # Base configurations
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   └── kustomization.yaml
+│   └── overlays/         # Environment-specific configs
+│       ├── dev/          # Development environment
+│       ├── staging/      # Staging environment
+│       └── prod/         # Production environment
+├── helm/                  # Helm charts
+├── terraform/             # Infrastructure as Code
+├── monitoring/            # Observability configs
+├── argocd/               # GitOps configurations
+├── docs/                 # Documentation
+│   ├── architecture.md  # System architecture
+│   ├── deployment.md    # Deployment guide
+│   ├── monitoring.md    # Monitoring setup
+│   └── gitops.md        # GitOps workflow
+├── scripts/              # Automation scripts
+│   ├── setup.sh         # Development setup
+│   └── deploy.sh        # Kubernetes deployment
+├── Dockerfile            # Container definition
+├── docker-compose.yml   # Local development
+├── requirements-dev.txt # Development dependencies
+└── pyproject.toml       # Tool configuration
+```
+
+## 🛠️ Development
 
 ```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
+# Setup development environment
+python -m venv venv
+source venv/bin/activate
+pip install -r src/requirements.txt -r requirements-dev.txt
 
-# Set up pre-commit hooks
+# Install pre-commit hooks
 pre-commit install
 
 # Run tests
 pytest tests/ -v --cov=src
 
-# Run code quality checks
-black src/
-isort src/
-flake8 src/
+# Code quality
+black src/ && isort src/ && flake8 src/
 ```
 
-## 📊 CI/CD Pipeline
+## 🐳 Docker
 
-The pipeline includes 5 comprehensive jobs:
+```bash
+# Build optimized image (146MB)
+docker build -t devops-app:latest .
 
-1. **🔍 Code Quality & Security** - Linting, formatting, security scans
-2. **🧪 Tests** - Unit tests with coverage (Python 3.11 & 3.12)
-3. **🐳 Docker Build & Security** - Image build, testing, vulnerability scanning
-4. **🔗 Docker Compose Test** - Integration testing
-5. **📋 Build Summary** - Reporting and notifications
-
-### Pipeline Features
-
-- ✅ **Matrix Testing** across Python versions
-- ✅ **Parallel Execution** for faster feedback
-- ✅ **Artifact Preservation** (coverage, security reports)
-- ✅ **Security Integration** with GitHub Security tab
-- ✅ **Build Caching** for performance optimization
-
-## 🐳 Docker Optimizations
-
-### Before vs After
-
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Image Size** | 457MB | 146MB | 68% reduction |
-| **Build Stages** | 1 | 2 (multi-stage) | Optimized |
-| **Security** | Basic | Enhanced | Non-root, dumb-init |
-| **Caching** | Poor | Optimized | Layer optimization |
-
-### Key Improvements
-
-- 🏗️ **Multi-stage builds** for smaller production images
-- 🔒 **Security hardening** with non-root user and dumb-init
-- 📦 **Dependency optimization** with separate build/runtime stages
-- 🚀 **Performance tuning** with proper Gunicorn configuration
-
-## 🛡️ Security Features
-
-### Code Security
-- **Bandit** - Python security vulnerability scanning
-- **Safety** - Dependency vulnerability checking
-- **MyPy** - Type safety validation
-
-### Container Security
-- **Trivy** - Container vulnerability scanning
-- **Non-root execution** - Security best practices
-- **Read-only filesystem** - Runtime protection
-
-### Pipeline Security
-- **SARIF integration** - GitHub Security tab
-- **Artifact isolation** - Secure build artifacts
-- **Secret management** - Proper credential handling
-
-## 📁 Project Structure
-
+# Run container
+docker run -p 8080:8080 devops-app:latest
 ```
-├── .github/workflows/ci.yml    # CI/CD pipeline
-├── src/                        # Application source
-│   ├── app.py                 # Flask application
-│   ├── config.py              # Configuration
-│   ├── wsgi.py                # WSGI entry point
-│   └── requirements.txt       # Dependencies
-├── tests/                      # Test suite
-│   └── test_app.py            # Comprehensive tests
-├── Dockerfile                  # Optimized multi-stage build
-├── docker-compose.yml          # Local development
-├── pyproject.toml             # Tool configuration
-├── requirements-dev.txt       # Development dependencies
-├── .pre-commit-config.yaml    # Pre-commit hooks
-└── env.example                # Environment template
+
+## ☸️ Kubernetes Deployment
+
+```bash
+# Deploy to development
+./scripts/deploy.sh -e dev
+
+# Deploy to production
+./scripts/deploy.sh -e prod -t v1.0.0
+
+# Or use kubectl directly
+kubectl apply -k k8s/overlays/dev
 ```
+
+## 📊 Monitoring
+
+- **Health**: `GET /healthz`
+- **Metrics**: `GET /metrics` (Prometheus format)
+- **Grafana**: Available dashboards in `monitoring/`
+
+## 🔧 Configuration
+
+Required environment variables:
+```bash
+METRICS_USER=username
+METRICS_PASS=password
+```
+
+See `env.example` for all options.
 
 ## 📚 Documentation
 
-- 📄 [Docker Improvements](DOCKER_IMPROVEMENTS.md) - Detailed Docker optimizations
-- 📄 [CI/CD Improvements](CI_CD_IMPROVEMENTS.md) - Pipeline enhancements
-- 🔧 [Configuration Guide](pyproject.toml) - Tool configurations
-
-## 🔧 Environment Variables
-
-### Required for Production
-```bash
-METRICS_USER=your_username      # Metrics endpoint authentication
-METRICS_PASS=your_password      # Metrics endpoint password
-```
-
-### Optional
-```bash
-FLASK_ENV=production           # Application environment
-WORKERS=3                      # Gunicorn workers
-TIMEOUT=30                     # Request timeout
-```
-
-## 🚀 Deployment
-
-### Docker
-```bash
-docker build -t myapp:latest .
-docker run -p 8080:8080 myapp:latest
-```
-
-### Docker Compose
-```bash
-docker-compose up -d
-```
-
-### Kubernetes (GitOps)
-```bash
-# Apply Kubernetes manifests
-kubectl apply -f k8s/
-```
-
-## 📈 Monitoring
-
-- **Health Check**: `GET /healthz`
-- **Metrics**: `GET /metrics` (Prometheus format)
-- **Application**: `GET /` (main endpoint)
+- [Architecture](docs/architecture.md) - System design and technology decisions
+- [Deployment Guide](docs/deployment.md) - Complete deployment instructions
+- [Monitoring Setup](docs/monitoring.md) - Observability and alerting
+- [GitOps Workflow](docs/gitops.md) - GitOps practices with ArgoCD
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and quality checks
-5. Submit a pull request
+2. Create feature branch
+3. Make changes with tests
+4. Submit pull request
 
-### Development Workflow
+## 📋 Scripts
 
-```bash
-# Install pre-commit hooks
-pre-commit install
-
-# Make changes
-# ...
-
-# Run quality checks
-black src/
-isort src/
-flake8 src/
-pytest tests/
-
-# Commit (pre-commit hooks will run automatically)
-git commit -m "feat: add new feature"
-```
-
-## 📊 Metrics & Performance
-
-- **Test Coverage**: >80%
-- **Security Scans**: 3 layers (code, dependencies, container)
-- **Build Time**: ~5-8 minutes
-- **Image Size**: 146MB (optimized)
-- **Python Compatibility**: 3.11, 3.12
-
-## 🔄 Continuous Improvement
-
-- 🔄 **Weekly**: Dependency updates
-- 🔄 **Monthly**: Security review
-- 🔄 **Quarterly**: Tool evaluation
-
-## 📞 Support
-
-- 📧 **Issues**: Use GitHub Issues
-- 📚 **Documentation**: See docs/ directory
-- 🔧 **CI/CD Help**: Check pipeline logs and artifacts
-
-## 🔧 Environment Setup
-
-### 1. Create Environment File
-
-```bash
-# Copy the template
-cp env.example .env
-```
-
-### 2. Configure Variables
-
-Edit `.env` file with your actual values:
-
-```bash
-# Required for metrics authentication
-METRICS_USER=your_secure_username
-METRICS_PASS=your_secure_password
-
-# Optional application settings
-DEBUG=false
-HOST=0.0.0.0
-PORT=8080
-LOG_LEVEL=INFO
-```
-
-### 3. Security Notes
-
-⚠️ **Important**: 
-- Never commit `.env` files to Git
-- Use strong passwords for production
-- See [Environment Security Guide](ENV_SECURITY_GUIDE.md) for details
+- `./scripts/setup.sh` - Automated development environment setup
+- `./scripts/deploy.sh` - Kubernetes deployment automation
 
 ---
 
-**Built with ❤️ for DevOps excellence**
+**Built for DevOps excellence** 🚀
