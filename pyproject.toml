@@ -1,0 +1,111 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "devops-cicd-demo"
+version = "1.0.0"
+description = "DevOps CI/CD Demo Application with Flask and Prometheus"
+authors = [
+    {name = "DevOps Team", email = "devops@company.com"}
+]
+dependencies = [
+    "flask>=3.1.1",
+    "prometheus_client>=0.22.0",
+    "flask_cors>=6.0.0",
+    "gunicorn>=23.0.0"
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["app", "config", "wsgi"]
+skip = ["venv", ".venv", "migrations"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "venv",
+    ".venv",
+    "build",
+    "dist"
+]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+exclude = [
+    "venv/",
+    ".venv/",
+    "tests/"
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".venv"]
+skips = ["B101"]  # Skip assert_used test
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers"
+testpaths = [
+    "tests",
+]
+python_files = [
+    "test_*.py",
+    "*_test.py"
+]
+python_classes = [
+    "Test*"
+]
+python_functions = [
+    "test_*"
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/venv/*",
+    "*/.venv/*",
+    "*/migrations/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:"
+] 

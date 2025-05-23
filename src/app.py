@@ -1,6 +1,7 @@
 import os
 import signal
 import logging
+import sys
 from functools import wraps
 from flask import Flask, Response, request, abort
 from prometheus_client import (
@@ -18,11 +19,22 @@ def create_app(config_class=Config):
         format="%(asctime)s %(levelname)s %(message)s"
     )
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    
+    # ИСПРАВЛЕНИЕ: Создаем экземпляр конфигурации для активации предупреждений
+    if config_class == Config:
+        config_instance = Config()
+        app.config.from_object(config_instance)
+    else:
+        app.config.from_object(config_class)
+    
     CORS(app)
 
     # Подготовка мультипроцессного реестра
-    os.makedirs(app.config["PROMETHEUS_MULTIPROC_DIR"], exist_ok=True)
+    # ИСПРАВЛЕНИЕ: Устанавливаем переменную окружения ПЕРЕД созданием MultiProcessCollector
+    prometheus_dir = app.config["PROMETHEUS_MULTIPROC_DIR"]
+    os.makedirs(prometheus_dir, exist_ok=True)
+    os.environ.setdefault('PROMETHEUS_MULTIPROC_DIR', prometheus_dir)
+    
     registry = CollectorRegistry()
     multiprocess.MultiProcessCollector(registry)
 
@@ -85,11 +97,11 @@ def create_app(config_class=Config):
         # Здесь можно добавить реальную проверку зависимостей
         return "READY", 200
 
-    # Graceful shutdown
+    # ИСПРАВЛЕНИЕ: Улучшенная обработка graceful shutdown
     def handle_signal(sig, frame):
         logging.info(f"Received signal {sig}, shutting down gracefully...")
         # Здесь можно подождать завершения работы воркеров
-        exit(0)
+        sys.exit(0)
 
     signal.signal(signal.SIGTERM, handle_signal)
     signal.signal(signal.SIGINT, handle_signal)

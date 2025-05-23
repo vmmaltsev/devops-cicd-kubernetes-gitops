@@ -5,6 +5,11 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
+    environment:
+      - METRICS_USER=${METRICS_USER:-admin}
+      - METRICS_PASS=${METRICS_PASS:-changeme}
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - WORKERS=${WORKERS:-3}
     ports:
       - "8080:8080"
     volumes:
@@ -12,10 +17,17 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 5s
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/tmp
 
 volumes:
   prometheus_data:
+    driver: local
